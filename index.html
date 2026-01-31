@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yuna - Plan Like a Woman</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <div class="app-container" id="setup-wizard">
+            
+            <div class="card active" id="card-1">
+                <div class="card-content centered">
+                    <h1 class="logo">Yuna</h1>
+                    <h2 class="tagline">Plan like a woman.</h2>
+                    <p class="subtext">A daily planner synchronized with your biological rhythm.</p>
+                    <button class="btn-primary" onclick="handleStartClick()">Begin Setup</button>
+                    <p id="user-greeting" class="fade-in-text"></p>
+                </div>
+            </div>
+
+            <div class="card" id="card-login">
+                <div class="card-content centered">
+                    <span class="step">Account</span>
+                    <h3>Save your cycle data</h3>
+                    <p class="subtext">Create an account so you don't lose your data.</p>
+                    <button class="btn-google" onclick="signInWithGoogle()">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+                        Continue with Google
+                    </button>
+                    <button class="btn-text" onclick="skipLogin()">Continue as Guest</button>
+                </div>
+            </div>
+
+            <div class="card" id="card-2" data-type="input">
+                <div class="card-content">
+                    <span class="step">Cycle Baseline • 1/5</span>
+                    <h3>Average cycle length?</h3>
+                    <span class="subtext">Usually between 21-35 days</span>
+                    <div class="input-group">
+                        <input type="number" placeholder="28" id="input-2" inputmode="numeric">
+                    </div>
+                    <p class="error-msg" id="error-2">Please enter a valid number.</p>
+                    <button class="btn-primary" onclick="validateAndNext(2)">Next Step</button>
+                </div>
+            </div>
+
+            <div class="card" id="card-3" data-type="input">
+                <div class="card-content">
+                    <span class="step">Cycle Baseline • 2/5</span>
+                    <h3>When did your last period start?</h3>
+                    <span class="subtext">Tap to select date</span>
+                    <div class="input-group">
+                        <input type="date" id="input-3">
+                    </div>
+                    <p class="error-msg" id="error-3">Please select a date.</p>
+                    <button class="btn-primary" onclick="validateAndNext(3)">Next Step</button>
+                </div>
+            </div>
+
+            <div class="card" id="card-4" data-type="input">
+                <div class="card-content">
+                    <span class="step">Cycle Baseline • 3/5</span>
+                    <h3>How many days does it last?</h3>
+                    <span class="subtext">Usually 3-7 days</span>
+                    <div class="input-group">
+                        <input type="number" placeholder="5" id="input-4" inputmode="numeric">
+                    </div>
+                    <p class="error-msg" id="error-4">Please enter a number.</p>
+                    <button class="btn-primary" onclick="validateAndNext(4)">Next Step</button>
+                </div>
+            </div>
+
+            <div class="card" id="card-5">
+                <div class="card-content">
+                    <span class="step">Cycle Baseline • 4/5</span>
+                    <h3>How regular is your cycle?</h3>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="selectOption(this, 5)">Very regular</button>
+                        <button class="option-btn" onclick="selectOption(this, 5)">Somewhat irregular</button>
+                        <button class="option-btn" onclick="selectOption(this, 5)">Highly irregular</button>
+                        <button class="option-btn" onclick="selectOption(this, 5)">I don't know</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="card-6">
+                <div class="card-content">
+                    <span class="step">Cycle Baseline • 5/5</span>
+                    <h3>Missed periods in the last 6 months?</h3>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="selectOption(this, 6)">Yes</button>
+                        <button class="option-btn" onclick="selectOption(this, 6)">No</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="card-7">
+                <div class="card-content">
+                    <span class="step">Medical Context • 1/4</span>
+                    <h3>Using hormonal birth control?</h3>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="selectOption(this, 7)">No</button>
+                        <button class="option-btn" onclick="selectOption(this, 7)">The Pill</button>
+                        <button class="option-btn" onclick="selectOption(this, 7)">IUD</button>
+                        <button class="option-btn" onclick="selectOption(this, 7)">Other</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="card-8" data-type="checkbox">
+                <div class="card-content">
+                    <span class="step">Medical Context • 2/4</span>
+                    <h3>Diagnosed with any of these?</h3>
+                    <span class="subtext">Select all that apply</span>
+                    <div class="options-grid" id="group-8">
+                        <label class="checkbox-option"><input type="checkbox" name="diagnosis"> PCOS</label>
+                        <label class="checkbox-option"><input type="checkbox" name="diagnosis"> Thyroid disorder</label>
+                        <label class="checkbox-option"><input type="checkbox" name="diagnosis"> Endometriosis</label>
+                        <label class="checkbox-option"><input type="checkbox" name="diagnosis"> None</label>
+                    </div>
+                    <p class="error-msg" id="error-8">Please select at least one.</p>
+                    <br>
+                    <button class="btn-primary" onclick="validateAndNext(8)">Next Step</button>
+                </div>
+            </div>
+
+             <div class="card" id="card-9">
+                <div class="card-content">
+                    <span class="step">Medical Context • 3/4</span>
+                    <h3>Current Status</h3>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="selectOption(this, 9)">Pregnant</button>
+                        <button class="option-btn" onclick="selectOption(this, 9)">Postpartum</button>
+                        <button class="option-btn" onclick="selectOption(this, 9)">Breastfeeding</button>
+                        <button class="option-btn" onclick="selectOption(this, 9)">None</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="card-10" data-type="input">
+                <div class="card-content">
+                    <span class="step">Lifestyle • 1/2</span>
+                    <h3>Average sleep per night?</h3>
+                    <div class="input-group">
+                        <input type="number" placeholder="e.g., 7.5" id="input-10" inputmode="decimal">
+                    </div>
+                    <p class="error-msg" id="error-10">Please enter hours.</p>
+                    <button class="btn-primary" onclick="validateAndNext(10)">Next Step</button>
+                </div>
+            </div>
+
+            <div class="card" id="card-11">
+                <div class="card-content">
+                    <span class="step">Goals • 1/2</span>
+                    <h3>Primary goal with Yuna?</h3>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="selectOption(this, 11)">Productivity</button>
+                        <button class="option-btn" onclick="selectOption(this, 11)">Fitness</button>
+                        <button class="option-btn" onclick="selectOption(this, 11)">Emotional Balance</button>
+                        <button class="option-btn" onclick="selectOption(this, 11)">Cycle Tracking</button>
+                    </div>
+                </div>
+            </div>
+
+             <div class="card" id="card-12">
+                <div class="card-content centered">
+                    <div class="final-circle"></div>
+                    <h1 class="logo">Yuna</h1>
+                    <p class="subtext">Your cycle is synced.</p>
+                    <button class="btn-primary" onclick="enterDashboard()">Enter Dashboard</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-view" id="dashboard-view">
+            
+            <div class="dash-header">
+                <div>
+                    <h2 class="greeting">Good Morning, <span id="dash-name">Love</span></h2>
+                    <p class="date-display" id="current-date">Saturday, 12 Oct</p>
+                </div>
+                <div class="streak-badge">
+                    <span>🔥 1 Day</span>
+                </div>
+            </div>
+
+            <div class="week-calendar" id="week-calendar">
+                </div>
+
+            <div class="dash-card main-card">
+                <div class="phase-badge">Follicular Phase</div>
+                <h3 class="phase-title">Energy Rising</h3>
+                <p class="phase-desc">Your estrogen is increasing. Great time for creative brainstorming and social activities.</p>
+            </div>
+
+            <div class="dash-card quote-card">
+                <p class="quote-text">"The moon does not apologize for its phases, and neither should you."</p>
+            </div>
+
+            <div class="action-grid">
+                <div class="dash-card small-card">
+                    <i data-lucide="droplet" class="icon-pink"></i>
+                    <span>Log Flow</span>
+                </div>
+                <div class="dash-card small-card">
+                    <i data-lucide="moon" class="icon-blue"></i>
+                    <span>Sleep</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
